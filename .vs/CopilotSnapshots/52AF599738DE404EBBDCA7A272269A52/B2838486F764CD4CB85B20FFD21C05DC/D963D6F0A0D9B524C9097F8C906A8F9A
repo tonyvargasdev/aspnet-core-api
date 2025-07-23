@@ -1,0 +1,75 @@
+﻿using aspnet_core_api.Context;
+using aspnet_core_api.Models.API;
+using aspnet_core_api.Models.Database;
+using Microsoft.EntityFrameworkCore;
+
+namespace aspnet_core_api.Repositories
+{
+    public class ProductsRepository
+    {
+        private readonly AppDbContext _context;
+
+        public ProductsRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IList<Product>> GetProductsAsync()
+        {
+            return await _context.Products.ToListAsync();
+        }
+
+        // Get data item
+        public async Task<Product?> GetProductAsync(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            return product;
+        }
+
+        // Insert new data item
+        public async Task<Product> InsertProductAsync(ProductDto dto)
+        {
+            var product = new Product()
+            {
+                Name = dto.Name,
+                Price = dto.Price,
+            };
+            
+            await _context.Products.AddAsync(product);
+            await _context.SaveChangesAsync();
+            
+            return product;
+        }
+
+        // Update an existing data item
+        public async Task<Product?> UpdateProductAsync(int id, ProductUpdateDto dto)
+        {
+            var existingItem = await _context.Products.FindAsync(id);
+            if (existingItem == null)
+            {
+                return null;
+            }
+
+            // Update only intended fields
+            existingItem.Price = dto.Price;
+
+            await _context.SaveChangesAsync();
+            
+            return existingItem;
+        }
+
+        // Delete data item
+        public async Task<Product?> DeleteProductAsync(int id)
+        {
+            var productItem = await _context.Products.FindAsync(id);
+            if (productItem != null)
+            {
+                _context.Products.Remove(productItem);
+                await _context.SaveChangesAsync();
+                
+                return productItem;
+            }
+            return null;
+        }
+    }
+}

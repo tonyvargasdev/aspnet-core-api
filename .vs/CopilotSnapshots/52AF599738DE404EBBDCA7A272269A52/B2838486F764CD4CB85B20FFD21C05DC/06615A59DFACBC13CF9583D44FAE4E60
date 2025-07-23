@@ -1,0 +1,84 @@
+﻿using aspnet_core_api.Models.API;
+using aspnet_core_api.Models.Database;
+using aspnet_core_api.Repositories;
+using Microsoft.AspNetCore.Mvc;
+
+namespace aspnet_core_api.Controllers
+{
+    [ApiController]
+    [Route("/products")]
+    public class ProductsController : ControllerBase
+    {
+        private readonly ILogger<ProductsController> _logger;
+        private readonly ProductsRepository _repository;
+
+        public ProductsController(ILogger<ProductsController> logger, ProductsRepository repository)
+        {
+            _logger = logger;
+            _repository = repository;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ListAsync()
+        {
+            var results = await _repository.GetProductsAsync();
+            return Ok(results);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAsync(int id)
+        {
+            var result = await _repository.GetProductAsync(id);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAsync(ProductDto product)
+        {
+            if (product == null)
+            {
+                return BadRequest();
+            }
+
+            var result = await _repository.InsertProductAsync(product);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateAsync(int id, ProductUpdateDto product)
+        {
+            if (product == null)
+            {
+                return BadRequest();
+            }
+
+            var existingProduct = await _repository.UpdateProductAsync(id, product);
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(existingProduct);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            var product = await _repository.DeleteProductAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+    }
+}
